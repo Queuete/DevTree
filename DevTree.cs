@@ -116,8 +116,8 @@ namespace DevTree
                     if (pluginWrapper?.Plugin == null) continue;
                     var type = pluginWrapper?.Plugin?.GetType();
                     var debugObjects = FindDebugObjects(type, pluginWrapper?.Plugin);
-                    if (debugObjects == null || debugObjects.Count == 0) continue;
-                    AddObjects(debugObjects, pluginWrapper.Name);
+                    if (debugObjects?.Objects == null || debugObjects?.Objects.Count == 0) continue;
+                    AddObjects(debugObjects.Objects, pluginWrapper.Name);
                 }
                 catch
                 {
@@ -126,13 +126,13 @@ namespace DevTree
             }
         }
 
-        public Dictionary<string, object> FindDebugObjects(Type pluginType, IPlugin plugin)
+        public IDebugObjects FindDebugObjects(Type pluginType, IPlugin plugin)
         {
             if (plugin == null) return null;
             if (pluginType == typeof(object)) return null;
-            var debugObjects = pluginType.GetProperty("DebugObjects", typeof(Dictionary<string, object>));
+            var debugObjects = pluginType.GetProperty("DebugObjects", typeof(IDebugObjects));
             if (debugObjects == null) return FindDebugObjects(pluginType.BaseType, plugin);
-            return debugObjects?.GetValue(plugin) as Dictionary<string, object>;
+            return debugObjects?.GetValue(plugin) as IDebugObjects;
         }
 
         public void AddObjects(object o, string name = null)
