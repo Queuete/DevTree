@@ -14,6 +14,7 @@ using ExileCore.Shared;
 using ExileCore.Shared.Cache;
 using ExileCore.Shared.Enums;
 using ExileCore.Shared.Helpers;
+using ExileCore.Shared.Interfaces;
 using ImGuiNET;
 using SharpDX;
 using ImGuiVector2 = System.Numerics.Vector2;
@@ -30,10 +31,9 @@ namespace DevTree
         private int _version;
         private TimeCache<Color> ColorSwaper;
         private List<Entity> DebugEntities = new List<Entity>(128);
-        private double Error = 0;
         private readonly Dictionary<string, MethodInfo> genericMethodCache = new Dictionary<string, MethodInfo>();
         private MethodInfo GetComponentMethod;
-        private readonly HashSet<string> IgnoredPropertioes = new HashSet<string> {"M", "TheGame", "Address"};
+        private readonly HashSet<string> IgnoredProperties = new HashSet<string> {"M", "TheGame", "Address"};
         private string inputFilter = "";
         private string guiObjAddr = "";
         private readonly Dictionary<string, object> objects = new Dictionary<string, object>();
@@ -70,15 +70,13 @@ namespace DevTree
             ColorSwaper = new TimeCache<Color>(() =>
             {
                 return Color.Yellow;
-                return new Color(_rnd.Next(255), _rnd.Next(255), _rnd.Next(255), 255);
-                ;
             }, 25);
 
             Input.RegisterKey(Settings.ToggleWindowKey);
             Input.RegisterKey(Settings.DebugHoverItem);
             Settings.DebugHoverItem.OnValueChanged += () => {   Input.RegisterKey(Settings.DebugHoverItem);};
             Settings.ToggleWindowKey.OnValueChanged += () => {   Input.RegisterKey(Settings.ToggleWindowKey);};
-            Name = "Dev Tree";
+            Name = "DevTree";
             return true;
         }
 
@@ -91,21 +89,50 @@ namespace DevTree
 
         public void InitObjects()
         {
-            objects.Clear();
-            AddObjects(GameController.Cache);
-            AddObjects(GameController);
-            AddObjects(GameController.Game);
-            AddObjects(GameController.Player, "Player");
-            AddObjects(GameController.Game.IngameState);
-            AddObjects(GameController.Game.IngameState.IngameUi);
-            AddObjects(GameController.Game.IngameState.Data);
-            AddObjects(GameController.Game.IngameState.ServerData);
-            AddObjects(GameController.Game.IngameState.ServerData.PlayerInventories[0].Inventory);
-            AddObjects(GameController.Game.IngameState.ServerData.PlayerInventories[0].Inventory.Items, "Items");
-            AddObjects(GameController.Game.IngameState.IngameUi.InventoryPanel[InventoryIndex.PlayerInventory], "Inventory panel");
-            AddObjects(GameController.IngameState.IngameUi.ItemsOnGroundLabels, "Label on grounds");
-            AddObjects(Plugins(),"Plugins");
             _version++;
+            objects.Clear();
+            AddObjects(GameController, "GameController");
+            AddObjects(GameController.Cache, "Cache");
+            AddObjects(GameController.Player, "Player");
+            AddObjects(GameController.IngameState, "IngameState");
+            AddObjects(GameController.IngameState.IngameUi, "IngameState.IngameUi");
+            AddObjects(GameController.IngameState.Data, "IngameState.Data");
+            AddObjects(GameController.IngameState.ServerData, "IngameState.ServerData");
+            AddObjects(GameController.IngameState.ServerData.PlayerInventories[0].Inventory, "IngameState.ServerData.PlayerInventories[0].Inventory");
+            AddObjects(GameController.IngameState.ServerData.PlayerInventories[0].Inventory.Items, "-> Items");
+            AddObjects(GameController.IngameState.IngameUi.InventoryPanel[InventoryIndex.PlayerInventory], "IngameState.IngameUi.InventoryPanel[InventoryIndex.PlayerInventory]");
+            AddObjects(GameController.IngameState.IngameUi.ItemsOnGroundLabels, "IngameState.IngameUi.ItemsOnGroundLabels");
+            var pluginWrappers = Plugins();
+            AddObjects(pluginWrappers, "PluginWrappers");
+            TryToAddDebugObjects(pluginWrappers);
+        }
+
+        private void TryToAddDebugObjects(List<PluginWrapper> pluginWrappers)
+        {
+            foreach (var pluginWrapper in pluginWrappers)
+            {
+                try
+                {
+                    if (pluginWrapper?.Plugin == null) continue;
+                    var type = pluginWrapper?.Plugin?.GetType();
+                    var debugObjects = FindDebugObjects(type, pluginWrapper?.Plugin);
+                    if (debugObjects == null || debugObjects.Count == 0) continue;
+                    AddObjects(debugObjects, pluginWrapper.Name);
+                }
+                catch
+                {
+                    LogError($"Error while looking for DebugObjects found for {pluginWrapper.Name}");
+                }
+            }
+        }
+
+        public Dictionary<string, object> FindDebugObjects(Type pluginType, IPlugin plugin)
+        {
+            if (plugin == null) return null;
+            if (pluginType == typeof(object)) return null;
+            var debugObjects = pluginType.GetProperty("DebugObjects", typeof(Dictionary<string, object>));
+            if (debugObjects == null) return FindDebugObjects(pluginType.BaseType, plugin);
+            return debugObjects?.GetValue(plugin) as Dictionary<string, object>;
         }
 
         public void AddObjects(object o, string name = null)
@@ -689,7 +716,7 @@ namespace DevTree
                         {
 
                        
-                        if (isMemoryObject != null && IgnoredPropertioes.Contains(property.Name)) continue;
+                        if (isMemoryObject != null && IgnoredProperties.Contains(property.Name)) continue;
 
                         var propertyValue = property.GetValue(obj);
 
