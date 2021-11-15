@@ -1069,7 +1069,7 @@ namespace DevTree
                             //if (ImGui.Button($"Change Visible##{e.GetHashCode()}"))
                             //{
                             //    var currentState = e.IsVisibleLocal;
-                            //    var offsetELementIsVivible = Extensions.GetOffset<ElementOffsets>(nameof(ElementOffsets.IsVisibleLocal));
+                            //    var offsetELementIsVivible = Extensions.GetOffset<GameOffsets.MemoryObjects.Element>(nameof(GameOffsets.MemoryObjects.Element.IsVisibleLocal));
                             //    var b = (byte) (currentState ? 19 : 23);
 
                             //    var writeProcessMemory = ProcessMemory.WriteProcessMemory(e.M.OpenProcessHandle,
