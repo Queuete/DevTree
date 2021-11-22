@@ -97,9 +97,9 @@ namespace DevTree
             AddObjects(GameController.IngameState, "IngameState");
             AddObjects(GameController.IngameState.IngameUi, "IngameState.IngameUi");
             AddObjects(GameController.IngameState.Data, "IngameState.Data");
-            AddObjects(GameController.IngameState.ServerData, "IngameState.ServerData");
-            AddObjects(GameController.IngameState.ServerData.PlayerInventories[0].Inventory, "IngameState.ServerData.PlayerInventories[0].Inventory");
-            AddObjects(GameController.IngameState.ServerData.PlayerInventories[0].Inventory.Items, "-> Items");
+            AddObjects(GameController.IngameState.Data.ServerData, "IngameState.Data.ServerData");
+            AddObjects(GameController.IngameState.Data.ServerData.PlayerInventories[0].Inventory, "IngameState.Data.ServerData.PlayerInventories[0].Inventory");
+            AddObjects(GameController.IngameState.Data.ServerData.PlayerInventories[0].Inventory.Items, "-> Items");
             AddObjects(GameController.IngameState.IngameUi.InventoryPanel[InventoryIndex.PlayerInventory], "IngameState.IngameUi.InventoryPanel[InventoryIndex.PlayerInventory]");
             AddObjects(GameController.IngameState.IngameUi.ItemsOnGroundLabels, "IngameState.IngameUi.ItemsOnGroundLabels");
             var pluginWrappers = Plugins();
@@ -1069,7 +1069,7 @@ namespace DevTree
                             //if (ImGui.Button($"Change Visible##{e.GetHashCode()}"))
                             //{
                             //    var currentState = e.IsVisibleLocal;
-                            //    var offsetELementIsVivible = Extensions.GetOffset<ElementOffsets>(nameof(ElementOffsets.IsVisibleLocal));
+                            //    var offsetELementIsVivible = Extensions.GetOffset<GameOffsets.MemoryObjects.Element>(nameof(GameOffsets.MemoryObjects.Element.IsVisibleLocal));
                             //    var b = (byte) (currentState ? 19 : 23);
 
                             //    var writeProcessMemory = ProcessMemory.WriteProcessMemory(e.M.OpenProcessHandle,
